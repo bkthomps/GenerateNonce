@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <thread>
+#include <cstring>
 
 extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 
