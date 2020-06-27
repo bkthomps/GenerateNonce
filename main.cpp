@@ -82,7 +82,7 @@ void thread(const int thread_number) {
     unsigned char pre_image_buffer[64];
     memset(pre_image_buffer, 0, 64);
     do {
-        //SHA3_224(pre_image_buffer, input_arr, bytes);
+        SHA3_224(pre_image_buffer, input_arr, bytes);
         if (pre_image_buffer[0] == '\0' && pre_image_buffer[1] == '\0'
             && pre_image_buffer[2] == '\0' && pre_image_buffer[3] == '\0') {
             std::string nonce("Nonce (thread ");
