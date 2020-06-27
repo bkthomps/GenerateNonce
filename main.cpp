@@ -2,6 +2,8 @@
 #include <vector>
 #include <thread>
 
+extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
+
 std::string get_input(const int thread_number) {
     auto h_m = std::string(
             "10001011011011110101110111000101101101000000010101011001111101111000010001010100011100010110101100100000100011111010001110001010011110001001011101000011010101011010110110110010001011000110111000110100011110000111110110011100");
@@ -67,7 +69,6 @@ bool increase(unsigned char *input_arr) {
 
 void thread(const int thread_number) {
     auto input_str = get_input(thread_number);
-    std::cout << input_str << std::endl;
     int bytes = (224 + 4104 + 128) / 8;
     unsigned char input_arr[bytes + 1];
     input_arr[bytes] = '\0';
@@ -78,20 +79,43 @@ void thread(const int thread_number) {
         }
         input_arr[i] = value;
     }
+    unsigned char pre_image_buffer[64];
+    memset(pre_image_buffer, 0, 64);
     do {
-        // TODO: Check the output
-        for (int i = 0; i < bytes; i++) {
-            std::cout << ((input_arr[i] & 0b10000000) >> 7);
-            std::cout << ((input_arr[i] & 0b01000000) >> 6);
-            std::cout << ((input_arr[i] & 0b00100000) >> 5);
-            std::cout << ((input_arr[i] & 0b00010000) >> 4);
-            std::cout << ((input_arr[i] & 0b00001000) >> 3);
-            std::cout << ((input_arr[i] & 0b00000100) >> 2);
-            std::cout << ((input_arr[i] & 0b00000010) >> 1);
-            std::cout << ((input_arr[i] & 0b00000001) >> 0);
+        //SHA3_224(pre_image_buffer, input_arr, bytes);
+        if (pre_image_buffer[0] == '\0' && pre_image_buffer[1] == '\0'
+            && pre_image_buffer[2] == '\0' && pre_image_buffer[3] == '\0') {
+            std::string nonce("Nonce (thread ");
+            nonce += std::to_string(thread_number);
+            nonce += "): ";
+            for (int i = (224 + 4104) / 8; i < (224 + 4104 + 128) / 8; i++) {
+                nonce += std::to_string((input_arr[i] & 0b10000000) >> 7);
+                nonce += std::to_string((input_arr[i] & 0b01000000) >> 6);
+                nonce += std::to_string((input_arr[i] & 0b00100000) >> 5);
+                nonce += std::to_string((input_arr[i] & 0b00010000) >> 4);
+                nonce += std::to_string((input_arr[i] & 0b00001000) >> 3);
+                nonce += std::to_string((input_arr[i] & 0b00000100) >> 2);
+                nonce += std::to_string((input_arr[i] & 0b00000010) >> 1);
+                nonce += std::to_string((input_arr[i] & 0b00000001) >> 0);
+            }
+            nonce += '\n';
+            std::string pre_image("Pre-Image (thread ");
+            pre_image += std::to_string(thread_number);
+            pre_image += "): ";
+            for (int i = 0; i < 28; i++) {
+                pre_image += std::to_string((pre_image_buffer[i] & 0b10000000) >> 7);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b01000000) >> 6);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00100000) >> 5);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00010000) >> 4);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00001000) >> 3);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00000100) >> 2);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00000010) >> 1);
+                pre_image += std::to_string((pre_image_buffer[i] & 0b00000001) >> 0);
+            }
+            pre_image += '\n';
+            std::cout << nonce << pre_image << std::endl;
+            exit(0);
         }
-        std::cout << std::endl;
-        // TODO: call library then check that first 32 bits of the nonce part are 0
     } while (increase(input_arr));
 }
 
@@ -113,7 +137,6 @@ int main() {
         return -1;
     }
     std::cout << "Using " << thread_count << " threads" << std::endl;
-    // TODO: set to thread count, assumes always 4
-    startThreads(1);
+    startThreads(thread_count);
     return 0;
 }
