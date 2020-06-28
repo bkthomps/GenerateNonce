@@ -7,6 +7,8 @@
 
 extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 
+#define HM_STR "<put h(amt0) for nonce 1, or h(m1) for nonce 2; pad with zeroes>"
+#define H_STR "<put m1 for nonce 1, or m2 for nonce 2; pad with zeroes>"
 #define HM_BITS 224
 #define M_BITS 4104
 #define NONCE_BITS 128
@@ -58,8 +60,8 @@ std::string get_zeros(const int thread_number) {
 }
 
 std::string get_input(const int thread_number) {
-    auto h_m = std::string("<put h(amt0) for nonce 1, or h(m1) for nonce 2; pad with zeroes>");
-    auto m = std::string("<put m1 for nonce 1, or m2 for nonce 2; pad with zeroes>");
+    auto h_m = std::string(HM_STR);
+    auto m = std::string(H_STR);
     if (h_m.size() != HM_BITS || m.size() != M_BITS) {
         std::cerr << "Bad size, h_m = " << h_m.size() << ", m = " << m.size() << std::endl;
         exit(-1);
