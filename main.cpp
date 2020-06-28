@@ -94,41 +94,26 @@ void thread(const int thread_number) {
         }
         input_arr[i] = value;
     }
-    unsigned char pre_image_buffer[HASH_BYTES + 1];
-    memset(pre_image_buffer, 0, HASH_BYTES + 1);
+    unsigned char buffer[HASH_BYTES + 1];
+    memset(buffer, 0, HASH_BYTES + 1);
     do {
-        SHA3_224(pre_image_buffer, input_arr, PRE_IMG_BYTES);
-        if (pre_image_buffer[0] == '\0' && pre_image_buffer[1] == '\0'
-            && pre_image_buffer[2] == '\0' && pre_image_buffer[3] == '\0') {
-            std::string nonce("Nonce (thread ");
-            nonce += std::to_string(thread_number);
-            nonce += "): ";
-            for (int i = NON_NONCE_BYTES; i < PRE_IMG_BYTES; i++) {
-                nonce += std::to_string((input_arr[i] & 0b10000000) >> 7);
-                nonce += std::to_string((input_arr[i] & 0b01000000) >> 6);
-                nonce += std::to_string((input_arr[i] & 0b00100000) >> 5);
-                nonce += std::to_string((input_arr[i] & 0b00010000) >> 4);
-                nonce += std::to_string((input_arr[i] & 0b00001000) >> 3);
-                nonce += std::to_string((input_arr[i] & 0b00000100) >> 2);
-                nonce += std::to_string((input_arr[i] & 0b00000010) >> 1);
-                nonce += std::to_string((input_arr[i] & 0b00000001) >> 0);
-            }
-            nonce += '\n';
+        SHA3_224(buffer, input_arr, PRE_IMG_BYTES);
+        if (buffer[0] == '\0' && buffer[1] == '\0' && buffer[2] == '\0' && buffer[3] == '\0') {
             std::string pre_image("Pre-Image (thread ");
             pre_image += std::to_string(thread_number);
             pre_image += "): ";
-            for (int i = 0; i < HASH_BYTES; i++) {
-                pre_image += std::to_string((pre_image_buffer[i] & 0b10000000) >> 7);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b01000000) >> 6);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00100000) >> 5);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00010000) >> 4);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00001000) >> 3);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00000100) >> 2);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00000010) >> 1);
-                pre_image += std::to_string((pre_image_buffer[i] & 0b00000001) >> 0);
+            for (int i = 0; i < PRE_IMG_BYTES; i++) {
+                pre_image += std::to_string((input_arr[i] & 0b10000000) >> 7);
+                pre_image += std::to_string((input_arr[i] & 0b01000000) >> 6);
+                pre_image += std::to_string((input_arr[i] & 0b00100000) >> 5);
+                pre_image += std::to_string((input_arr[i] & 0b00010000) >> 4);
+                pre_image += std::to_string((input_arr[i] & 0b00001000) >> 3);
+                pre_image += std::to_string((input_arr[i] & 0b00000100) >> 2);
+                pre_image += std::to_string((input_arr[i] & 0b00000010) >> 1);
+                pre_image += std::to_string((input_arr[i] & 0b00000001) >> 0);
             }
             pre_image += '\n';
-            std::cout << nonce << pre_image << std::endl;
+            std::cout << pre_image << std::endl;
             exit(0);
         }
     } while (increase(input_arr));
