@@ -1,5 +1,3 @@
-#pragma ide diagnostic ignored "hicpp-signed-bitwise"
-
 #include <iostream>
 #include <vector>
 #include <thread>
@@ -14,7 +12,6 @@ extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 #define NONCE_BITS 128
 #define NON_NONCE_BITS (HM_BITS + M_BITS)
 #define PRE_IMG_BITS (NON_NONCE_BITS + NONCE_BITS)
-#define NON_NONCE_BYTES (NON_NONCE_BITS / 8)
 #define PRE_IMG_BYTES (PRE_IMG_BITS / 8)
 #define HASH_BYTES 28
 
@@ -83,7 +80,7 @@ bool increase(unsigned char *input_arr) {
     return false;
 }
 
-void output_pre_image_and_terminate(const int thread_number, unsigned char *input_arr) {
+void output_pre_image_and_terminate(const int thread_number, const unsigned char *input_arr) {
     std::string pre_image("Pre-Image (thread ");
     pre_image += std::to_string(thread_number);
     pre_image += "): ";
@@ -126,7 +123,7 @@ void thread(const int thread_number) {
 void startThreads(const unsigned int thread_count) {
     std::vector<std::thread> threads;
     threads.reserve(thread_count);
-    for (int i = 0; i < thread_count; i++) {
+    for (unsigned int i = 0; i < thread_count; i++) {
         threads.emplace_back(std::thread(thread, i));
     }
     for (auto &thread : threads) {
