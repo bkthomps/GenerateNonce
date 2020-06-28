@@ -5,6 +5,13 @@
 
 extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 
+// This is for the bonus question
+#define CLOCK_TIMING 0
+#if CLOCK_TIMING
+#include <chrono>
+#define REQUIRED_ZERO_BITS 32
+#endif
+
 #define HM_STR "<put h(amt0) for nonce 1, or h(m1) for nonce 2; pad with zeroes>"
 #define H_STR "<put m1 for nonce 1, or m2 for nonce 2; pad with zeroes>"
 #define HM_BITS 224
@@ -112,11 +119,35 @@ void thread(const int thread_number) {
     }
     unsigned char buffer[HASH_BYTES + 1];
     memset(buffer, 0, HASH_BYTES + 1);
+#if CLOCK_TIMING
+    auto begin = std::chrono::steady_clock::now();
+#endif
     do {
         SHA3_224(buffer, input_arr, PRE_IMG_BYTES);
+#if !CLOCK_TIMING
         if (buffer[0] == '\0' && buffer[1] == '\0' && buffer[2] == '\0' && buffer[3] == '\0') {
             output_pre_image_and_terminate(thread_number, input_arr);
         }
+#else
+        bool done = true;
+        for (unsigned long i = 0; i < REQUIRED_ZERO_BITS; i++) {
+            unsigned long byte = i / 8;
+            unsigned long offset = 7 - i % 8;
+            unsigned int bit = (buffer[byte] & (1U << offset)) >> offset;
+            if (bit) {
+                done = false;
+                break;
+            }
+        }
+        if (done) {
+            auto end = std::chrono::steady_clock::now();
+            int diff = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+            int minutes = diff / 60;
+            int seconds = diff % 60;
+            std::cout << "Time elapsed: " << minutes << "min " << seconds << "sec" << std::endl;
+            output_pre_image_and_terminate(thread_number, input_arr);
+        }
+#endif
     } while (increase(input_arr));
 }
 

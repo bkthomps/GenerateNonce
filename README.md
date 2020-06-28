@@ -7,5 +7,5 @@ If your machine is different:
 2. Figure our your processor instruction set, Sandy Bridge and Ivy Bridge are AVX, and Haswell and Skylake are AVX2.
 3. Go into that cloned repository and run `make AVX/libXKCP.a` for a static library. AVX can be replaced with any supported processor instruction set.
 4. Copy over the new `libXKCP.a` to this repository.
-5. Run `clang++ main.cpp -o main libXKCP.a -ldl -std=gnu++17`
+5. Run `clang++ main.cpp -o main libXKCP.a -ldl -std=gnu++17 -O3`
 6. Then you can run `./main` to run it. On my machine (Mid 2012 13-inch MacBook Pro) it processes 500 000 nonces per second.
