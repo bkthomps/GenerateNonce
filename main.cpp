@@ -83,6 +83,25 @@ bool increase(unsigned char *input_arr) {
     return false;
 }
 
+void output_pre_image_and_terminate(const int thread_number, unsigned char *input_arr) {
+    std::string pre_image("Pre-Image (thread ");
+    pre_image += std::to_string(thread_number);
+    pre_image += "): ";
+    for (int i = 0; i < PRE_IMG_BYTES; i++) {
+        pre_image += std::to_string((input_arr[i] & 0b10000000) >> 7);
+        pre_image += std::to_string((input_arr[i] & 0b01000000) >> 6);
+        pre_image += std::to_string((input_arr[i] & 0b00100000) >> 5);
+        pre_image += std::to_string((input_arr[i] & 0b00010000) >> 4);
+        pre_image += std::to_string((input_arr[i] & 0b00001000) >> 3);
+        pre_image += std::to_string((input_arr[i] & 0b00000100) >> 2);
+        pre_image += std::to_string((input_arr[i] & 0b00000010) >> 1);
+        pre_image += std::to_string((input_arr[i] & 0b00000001) >> 0);
+    }
+    pre_image += '\n';
+    std::cout << pre_image << std::endl;
+    exit(0);
+}
+
 void thread(const int thread_number) {
     auto input_str = get_input(thread_number);
     unsigned char input_arr[PRE_IMG_BYTES + 1];
@@ -99,22 +118,7 @@ void thread(const int thread_number) {
     do {
         SHA3_224(buffer, input_arr, PRE_IMG_BYTES);
         if (buffer[0] == '\0' && buffer[1] == '\0' && buffer[2] == '\0' && buffer[3] == '\0') {
-            std::string pre_image("Pre-Image (thread ");
-            pre_image += std::to_string(thread_number);
-            pre_image += "): ";
-            for (int i = 0; i < PRE_IMG_BYTES; i++) {
-                pre_image += std::to_string((input_arr[i] & 0b10000000) >> 7);
-                pre_image += std::to_string((input_arr[i] & 0b01000000) >> 6);
-                pre_image += std::to_string((input_arr[i] & 0b00100000) >> 5);
-                pre_image += std::to_string((input_arr[i] & 0b00010000) >> 4);
-                pre_image += std::to_string((input_arr[i] & 0b00001000) >> 3);
-                pre_image += std::to_string((input_arr[i] & 0b00000100) >> 2);
-                pre_image += std::to_string((input_arr[i] & 0b00000010) >> 1);
-                pre_image += std::to_string((input_arr[i] & 0b00000001) >> 0);
-            }
-            pre_image += '\n';
-            std::cout << pre_image << std::endl;
-            exit(0);
+            output_pre_image_and_terminate(thread_number, input_arr);
         }
     } while (increase(input_arr));
 }
