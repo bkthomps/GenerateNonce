@@ -2,6 +2,7 @@
 #include <vector>
 #include <thread>
 #include <cstring>
+#include <ctime>
 
 extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 
@@ -22,32 +23,22 @@ extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 #define PRE_IMG_BYTES (PRE_IMG_BITS / 8)
 #define HASH_BYTES 28
 
-std::string get_zeros(const int thread_number) {
-    auto zeros = std::string("");
+std::string get_randomized_nonce() {
+    auto randomized_nonce = std::string("");
     for (int i = 0; i < NONCE_BITS; i++) {
-        zeros += "0";
+        randomized_nonce += std::to_string(rand() % 2);
     }
-    if (thread_number >= 64) {
-        std::cerr << "Maximum of 64 threads" << std::endl;
-        exit(-1);
-    }
-    zeros[0] = '0' + thread_number % 2;
-    zeros[1] = '0' + (thread_number / 2) % 2;
-    zeros[2] = '0' + (thread_number / 4) % 2;
-    zeros[3] = '0' + (thread_number / 8) % 2;
-    zeros[4] = '0' + (thread_number / 16) % 2;
-    zeros[5] = '0' + (thread_number / 32) % 2;
-    return zeros;
+    return randomized_nonce;
 }
 
-std::string get_input(const int thread_number) {
+std::string get_input() {
     auto h_m = std::string(HM_STR);
     auto m = std::string(H_STR);
     if (h_m.size() != HM_BITS || m.size() != M_BITS) {
         std::cerr << "Bad size, h_m = " << h_m.size() << ", m = " << m.size() << std::endl;
         exit(-1);
     }
-    auto zeros = get_zeros(thread_number);
+    auto zeros = get_randomized_nonce();
     return h_m + m + zeros;
 }
 
@@ -84,7 +75,7 @@ void output_pre_image_and_terminate(const int thread_number, const unsigned char
 }
 
 void thread(const int thread_number) {
-    auto input_str = get_input(thread_number);
+    auto input_str = get_input();
     unsigned char input_arr[PRE_IMG_BYTES + 1];
     input_arr[PRE_IMG_BYTES] = '\0';
     for (int i = 0; i < PRE_IMG_BYTES; i++) {
@@ -131,6 +122,7 @@ void thread(const int thread_number) {
 void startThreads(const unsigned int thread_count) {
     std::vector<std::thread> threads;
     threads.reserve(thread_count);
+    srand(time(0));
     for (unsigned int i = 0; i < thread_count; i++) {
         threads.emplace_back(std::thread(thread, i));
     }
