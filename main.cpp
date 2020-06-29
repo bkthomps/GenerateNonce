@@ -24,22 +24,29 @@ extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 #define PRE_IMG_BYTES (PRE_IMG_BITS / 8)
 #define HASH_BYTES 28
 
-std::string get_randomized_nonce() {
+std::string get_randomized_nonce(const int thread_number) {
     auto randomized_nonce = std::string("");
     for (int i = 0; i < NONCE_BITS; i++) {
         randomized_nonce += std::to_string(rand() % 2);
     }
+    // Guide the randomization so it does not repeat computations
+    randomized_nonce[0] = '0' + thread_number % 2;
+    randomized_nonce[1] = '0' + (thread_number / 2) % 2;
+    randomized_nonce[2] = '0' + (thread_number / 4) % 2;
+    randomized_nonce[3] = '0' + (thread_number / 8) % 2;
+    randomized_nonce[4] = '0' + (thread_number / 16) % 2;
+    randomized_nonce[5] = '0' + (thread_number / 32) % 2;
     return randomized_nonce;
 }
 
-std::string get_input() {
+std::string get_input(const int thread_number) {
     auto h_m = std::string(HM_STR);
     auto m = std::string(H_STR);
     if (h_m.size() != HM_BITS || m.size() != M_BITS) {
         std::cerr << "Bad size, h_m = " << h_m.size() << ", m = " << m.size() << std::endl;
         exit(-1);
     }
-    auto zeros = get_randomized_nonce();
+    auto zeros = get_randomized_nonce(thread_number);
     return h_m + m + zeros;
 }
 
@@ -78,7 +85,7 @@ void output_pre_image_and_terminate(const int thread_number, const unsigned char
 }
 
 [[noreturn]] void thread(const int thread_number) {
-    auto input_str = get_input();
+    auto input_str = get_input(thread_number);
     unsigned char input_arr[PRE_IMG_BYTES + 1];
     input_arr[PRE_IMG_BYTES] = '\0';
     for (int i = 0; i < PRE_IMG_BYTES; i++) {
