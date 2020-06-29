@@ -27,39 +27,16 @@ std::string get_zeros(const int thread_number) {
     for (int i = 0; i < NONCE_BITS; i++) {
         zeros += "0";
     }
-    switch (thread_number) {
-        case 0:
-            break;
-        case 1:
-            zeros[0] = '1';
-            break;
-        case 2:
-            zeros[1] = '1';
-            break;
-        case 3:
-            zeros[0] = '1';
-            zeros[1] = '1';
-            break;
-        case 4:
-            zeros[2] = '1';
-            break;
-        case 5:
-            zeros[0] = '1';
-            zeros[2] = '1';
-            break;
-        case 6:
-            zeros[1] = '1';
-            zeros[2] = '1';
-            break;
-        case 7:
-            zeros[0] = '1';
-            zeros[1] = '1';
-            zeros[2] = '1';
-            break;
-        default:
-            std::cerr << "Maximum of 8 threads" << std::endl;
-            exit(-1);
+    if (thread_number >= 64) {
+        std::cerr << "Maximum of 64 threads" << std::endl;
+        exit(-1);
     }
+    zeros[0] = '0' + thread_number % 2;
+    zeros[1] = '0' + (thread_number / 2) % 2;
+    zeros[2] = '0' + (thread_number / 4) % 2;
+    zeros[3] = '0' + (thread_number / 8) % 2;
+    zeros[4] = '0' + (thread_number / 16) % 2;
+    zeros[5] = '0' + (thread_number / 32) % 2;
     return zeros;
 }
 
