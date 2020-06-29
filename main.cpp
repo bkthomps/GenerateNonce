@@ -145,6 +145,9 @@ int main() {
         std::cerr << "Could not retrieve thread count" << std::endl;
         return -1;
     }
+#if CLOCK_TIMING
+    std::cout << "Computing for " << REQUIRED_ZERO_BITS << " leading zeros" << std::endl;
+#endif
     std::cout << "Using " << thread_count << " threads" << std::endl;
     startThreads(thread_count);
     return 0;
