@@ -20,6 +20,7 @@ extern "C" int SHA3_224(unsigned char *, const unsigned char *, size_t);
 #define NONCE_BITS 128
 #define NON_NONCE_BITS (HM_BITS + M_BITS)
 #define PRE_IMG_BITS (NON_NONCE_BITS + NONCE_BITS)
+#define NON_NONCE_BYTES (NON_NONCE_BITS / 8)
 #define PRE_IMG_BYTES (PRE_IMG_BITS / 8)
 #define HASH_BYTES 28
 
@@ -42,17 +43,19 @@ std::string get_input() {
     return h_m + m + zeros;
 }
 
-bool increase(unsigned char *input_arr) {
+void increase(unsigned char *input_arr) {
     for (unsigned long i = PRE_IMG_BITS - 1; i >= NON_NONCE_BITS; i--) {
         unsigned long byte = i / 8;
         unsigned long offset = 7 - i % 8;
         unsigned int bit = (input_arr[byte] & (1U << offset)) >> offset;
         input_arr[byte] ^= (1U << offset);
         if (!bit) {
-            return true;
+            return;
         }
     }
-    return false;
+    for (unsigned long i = NON_NONCE_BYTES; i < PRE_IMG_BYTES; i++) {
+        input_arr[i] = 0;
+    }
 }
 
 void output_pre_image_and_terminate(const int thread_number, const unsigned char *input_arr) {
@@ -74,7 +77,7 @@ void output_pre_image_and_terminate(const int thread_number, const unsigned char
     exit(0);
 }
 
-void thread(const int thread_number) {
+[[noreturn]] void thread(const int thread_number) {
     auto input_str = get_input();
     unsigned char input_arr[PRE_IMG_BYTES + 1];
     input_arr[PRE_IMG_BYTES] = '\0';
@@ -90,7 +93,8 @@ void thread(const int thread_number) {
 #if CLOCK_TIMING
     auto begin = std::chrono::steady_clock::now();
 #endif
-    do {
+    while (true) {
+        increase(input_arr);
         SHA3_224(buffer, input_arr, PRE_IMG_BYTES);
 #if !CLOCK_TIMING
         if (buffer[0] == '\0' && buffer[1] == '\0' && buffer[2] == '\0' && buffer[3] == '\0') {
@@ -116,7 +120,7 @@ void thread(const int thread_number) {
             output_pre_image_and_terminate(thread_number, input_arr);
         }
 #endif
-    } while (increase(input_arr));
+    }
 }
 
 void startThreads(const unsigned int thread_count) {
